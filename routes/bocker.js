@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import db from '../db.js';
+
 const router = express.Router();
-const db = require('../db');
 
 // 🔹 GET /bocker – Hämta alla böcker
 router.get('/', async (req, res) => {
@@ -75,4 +76,4 @@ router.delete('/:id', async (req, res) => {
 
 
 
-module.exports = router;
+export default router;

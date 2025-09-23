@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import db from '../db.js';
+
 const router = express.Router();
-const db = require('../db');
 
 // Hämta total kostnad per kund
 router.get('/total-kostnad', async (req, res) => {
@@ -19,4 +20,4 @@ router.get('/total-kostnad', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

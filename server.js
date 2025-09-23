@@ -1,20 +1,28 @@
-const express = require('express');
-const path = require('path');
+import express from 'express';
+import path from 'path';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+
+
 const app = express();
-require('dotenv').config();
+dotenv.config();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const kunderRoutes = require('./routes/kunder');
-const bestallningarRoutes = require('./routes/bestallningar');
-const bockerRoutes = require('./routes/bocker');
-const rapportRoutes = require('./routes/rapport');
+import kunderRoutes from './routes/kunder.js';
+import bestallningarRoutes from './routes/bestallningar.js';
+import bockerRoutes from './routes/bocker.js';
+import rapportRoutes from './routes/rapport.js';
 
 app.use('/kunder', kunderRoutes);
 app.use('/bestallningar', bestallningarRoutes);
 app.use('/bocker', bockerRoutes);
 app.use('/rapport', rapportRoutes);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.listen(port, () => {
