@@ -60,9 +60,19 @@ button:hover {
 }
 
 .bokRad {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 0.5rem;
+  background: #ecf0f1;
+  border-radius: 4px;
+  padding: 0 9px;
 }
-
+.bokRad:hover,
+ul#bestallningarLista li:hover {
+  cursor: pointer;
+  background-color: white;
+}
 ul#bestallningarLista {
   list-style: none;
   padding-left: 0;
@@ -73,7 +83,4 @@ ul#bestallningarLista li {
   margin-bottom: 0.5rem;
   padding: 1.3rem 0.8rem;
   border-radius: 4px;
-}
-#bokLista {
-  text-align: right;
 }
