@@ -6,7 +6,7 @@ const router = express.Router();
 // 🔹 GET /bocker – Hämta alla böcker
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM böcker');
+    const [rows] = await db.query('SELECT * FROM böcker WHERE LagerAntal > 0');
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
