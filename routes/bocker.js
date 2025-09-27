@@ -12,7 +12,22 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// 🔹 GET: Hämta en specifik bok baserat på BokID
+router.get('/:id', async (req, res) => {
+  const { id } = req.params; // Hämtar bokID från URL-parametern
 
+  try {
+    const [rows] = await db.query('SELECT * FROM böcker WHERE BokID = ?', [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Bok ej hittad' });
+    }
+
+    res.json(rows[0]); // Skicka tillbaka den specifika boken (första raden)
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // 🔹 POST /bocker – Lägg till ny bok
 router.post('/', async (req, res) => {
@@ -81,23 +96,35 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-
-//  DELETE /bocker/:id – Ta bort en bok
+// DELETE /bocker/:id – Ta bort en bok och relaterade poster i beställning_böcker
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
+  const conn = await db.getConnection();
   try {
-    const [result] = await db.query('DELETE FROM böcker WHERE BokID = ?', [id]);
+    await conn.beginTransaction();
+
+    // 1. Ta bort alla rader i beställning_böcker som refererar till boken
+    await conn.query('DELETE FROM beställning_böcker WHERE BokID = ?', [id]);
+
+    // 2. Ta bort boken
+    const [result] = await conn.query('DELETE FROM böcker WHERE BokID = ?', [id]);
 
     if (result.affectedRows === 0) {
+      await conn.rollback();
       return res.status(404).json({ error: 'Ingen bok hittades med det angivna ID:t.' });
     }
 
-    res.json({ message: 'Boken har tagits bort.' });
+    await conn.commit();
+    res.json({ message: 'Boken och relaterade poster har tagits bort.' });
   } catch (err) {
+    await conn.rollback();
     res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
   }
 });
+
 
 
 
