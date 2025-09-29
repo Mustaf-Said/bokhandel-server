@@ -5,15 +5,29 @@ document.getElementById('kundForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = new FormData(e.target);
   const data = Object.fromEntries(form.entries());
-  await fetch(api + '/kunder', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  alert('Kund tillagd');
-  e.target.reset();
-  hämtaKunder();
+
+  try {
+    const response = await fetch(api + '/kunder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      // Läs felmeddelandet från servern om det inte är en OK-svar
+      const errorData = await response.json();
+      return alert('Fel: ' + errorData.error);
+    }
+
+    alert('Kund tillagd');
+    e.target.reset();
+    hämtaKunder();
+  } catch (err) {
+    console.error('Något gick fel:', err);  // Logga för felsökning
+    alert('Ett fel inträffade när kunddata skickades. Försök igen senare.');
+  }
 });
+
 
 // 📚 Lägg till bok
 document.getElementById('bokForm').addEventListener('submit', async (e) => {
@@ -22,15 +36,28 @@ document.getElementById('bokForm').addEventListener('submit', async (e) => {
   const data = Object.fromEntries(form.entries());
   data.Pris = parseFloat(data.Pris);
   data.LagerAntal = parseInt(data.LagerAntal);
-  await fetch(api + '/bocker', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  alert('Bok tillagd');
-  e.target.reset();
-  hämtaBocker();
+
+  try {
+    const response = await fetch(api + '/bocker', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return alert('Fel: ' + errorData.error);  // Visa serverns felmeddelande
+    }
+
+    alert('Bok tillagd');
+    e.target.reset();
+    hämtaBocker();
+  } catch (err) {
+    console.error('Något gick fel:', err);  // Logga för felsökning
+    alert('Ett fel inträffade när bokdata skickades. Försök igen senare.');
+  }
 });
+
 
 // 🛒 Skapa beställning
 document.getElementById('orderForm').addEventListener('submit', async (e) => {
@@ -77,15 +104,61 @@ async function hämtaBocker() {
       `).join('');
 }
 
-// 🧾 Visa beställningar
+let allaBestallningar = []; // Global variabel för alla beställningar
+
+// 🧾 Hämta och visa beställningar (sorterade A–Ö)
 async function visaBestallningar() {
   const res = await fetch(api + '/bestallningar');
   const data = await res.json();
-  const ul = document.getElementById('bestallningarLista');
-  ul.innerHTML = data.map(b =>
-    `<li><strong>${b.Namn}</strong> beställde "${b.Titel}" (${b.Antal} st) <br><strong>Datum</strong> ${b.Datum}</li>`
-  ).join('');
+
+  // Spara alla beställningar i en global variabel
+  allaBestallningar = data.sort((a, b) => a.Namn.localeCompare(b.Namn, 'sv'));
+
+  // Visa första gången utan filter
+  renderaBestallningar(allaBestallningar);
 }
+
+// 📋 Rendera beställningar (filtrerad lista)
+function renderaBestallningar(lista) {
+  const ul = document.getElementById('bestallningarLista');
+  ul.innerHTML = lista.map(b => {
+    const datum = new Date(b.Datum);
+    datum.setDate(datum.getDate());
+    const datumStr = datum.toLocaleDateString();
+    return `<li><strong>${b.Namn}</strong> beställde "${b.Titel}" (${b.Antal} st) <br><strong>Datum</strong> ${datumStr}</li>`;
+  }).join('');
+}
+
+// 🔍 Lägg till sökfunktion
+document.getElementById('sokBestallningar').addEventListener('input', (e) => {
+
+  const sokterm = e.target.value.toLowerCase();
+
+  const filtreradLista = allaBestallningar.filter(b =>
+    b.Namn.toLowerCase().includes(sokterm) ||
+    b.Titel.toLowerCase().includes(sokterm)
+  );
+
+  renderaBestallningar(filtreradLista);
+
+  // Om sökningen matchar exakt ett namn eller boktitel => scrolla ner
+  const exaktMatch = allaBestallningar.find(b =>
+    b.Namn.toLowerCase() === sokterm || b.Titel.toLowerCase() === sokterm
+  );
+
+  if (exaktMatch) {
+    // Scrolla till beställningslistan
+    document.getElementById('bestallningarLista').scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+    e.target.value = '';
+  }
+
+});
+
+
+
 
 // 🔃 Init
 hämtaKunder();

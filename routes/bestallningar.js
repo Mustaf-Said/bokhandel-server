@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
 
   try {
     const [rows] = await db.query(`
-       SELECT k.KundID, k.Namn, b.Titel, bb.Antal, be.Datum
+       SELECT  k.KundID, k.Namn, b.Titel, bb.Antal, be.BeställningID, be.Datum
       FROM kunder k
       JOIN beställningar be ON k.KundID = be.KundID
       JOIN beställning_böcker bb ON be.BeställningID = bb.BeställningID
@@ -78,6 +78,53 @@ router.post('/', async (req, res) => {
     conn.release();
   }
 });
+
+// 🔹 DELETE: Ta bort en beställning och återställ lagersaldo
+router.delete('/:id', async (req, res) => {
+  const bestallningID = req.params.id;
+
+  const conn = await db.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // 1. Hämta böcker och antal för att kunna återställa lagersaldo
+    const [bocker] = await conn.query(
+      'SELECT BokID, Antal FROM beställning_böcker WHERE BeställningID = ?',
+      [bestallningID]
+    );
+
+    // 2. Återställ lagersaldo
+    for (const bok of bocker) {
+      await conn.query(
+        'UPDATE böcker SET LagerAntal = LagerAntal + ? WHERE BokID = ?',
+        [bok.Antal, bok.BokID]
+      );
+    }
+
+    // 3. Ta bort från beställning_böcker
+    await conn.query(
+      'DELETE FROM beställning_böcker WHERE BeställningID = ?',
+      [bestallningID]
+    );
+
+    // 4. Ta bort själva beställningen
+    await conn.query(
+      'DELETE FROM beställningar WHERE BeställningID = ?',
+      [bestallningID]
+    );
+
+    await conn.commit();
+    res.json({ message: 'Beställning borttagen och lagersaldo återställt' });
+
+  } catch (err) {
+    await conn.rollback();
+    res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
+  }
+});
+
 
 export default router;
 
