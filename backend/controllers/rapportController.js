@@ -1,10 +1,8 @@
-import express from 'express';
-import db from '../db.js';
-
-const router = express.Router();
+// controllers/rapportController.js
+import db from '../config/db.js';
 
 // Hämta total kostnad per kund
-router.get('/total-kostnad', async (req, res) => {
+export const getTotalCostPerCustomer = async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT k.KundID, k.Namn, SUM(bb.Antal * b.Pris) AS TotalPris
@@ -18,6 +16,4 @@ router.get('/total-kostnad', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
-
-export default router;
+};

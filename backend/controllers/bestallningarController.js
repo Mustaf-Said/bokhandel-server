@@ -1,11 +1,8 @@
-import express from 'express';
-import db from '../db.js';
+// controllers/bestallningarController.js
+import db from '../config/db.js';
 
-const router = express.Router();
-
-// 🔹 GET: Hämta alla beställningar med boktitlar
-router.get('/', async (req, res) => {
-
+// Hämta alla beställningar med boktitlar
+export const getAllOrders = async (req, res) => {
   try {
     const [rows] = await db.query(`
        SELECT  k.KundID, k.Namn, b.Titel, bb.Antal, be.BeställningID, be.Datum
@@ -13,17 +10,15 @@ router.get('/', async (req, res) => {
       JOIN beställningar be ON k.KundID = be.KundID
       JOIN beställning_böcker bb ON be.BeställningID = bb.BeställningID
       JOIN böcker b ON bb.BokID = b.BokID
-        `);
-
+    `);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+};
 
-});
-
-// 🔹 POST: Skapa ny beställning med böcker och minska lagersaldo
-router.post('/', async (req, res) => {
+// Skapa ny beställning med böcker och minska lagersaldo
+export const createOrder = async (req, res) => {
   const { KundID, Datum, Bocker } = req.body;
 
   const conn = await db.getConnection();
@@ -77,10 +72,10 @@ router.post('/', async (req, res) => {
   } finally {
     conn.release();
   }
-});
+};
 
-// 🔹 DELETE: Ta bort en beställning och återställ lagersaldo
-router.delete('/:id', async (req, res) => {
+// Ta bort en beställning och återställ lagersaldo
+export const deleteOrder = async (req, res) => {
   const bestallningID = req.params.id;
 
   const conn = await db.getConnection();
@@ -123,8 +118,4 @@ router.delete('/:id', async (req, res) => {
   } finally {
     conn.release();
   }
-});
-
-
-export default router;
-
+};

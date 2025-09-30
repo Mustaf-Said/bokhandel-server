@@ -1,20 +1,18 @@
-import express from 'express';
-import db from '../db.js';
-
-const router = express.Router();
-
-// 🔹 GET /bocker – Hämta alla böcker
-router.get('/', async (req, res) => {
+// controllers/bockerController.js
+import db from '../config/db.js';
+// Hämta alla böcker
+export const getBooks = async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM böcker WHERE LagerAntal > 0');
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
-// 🔹 GET: Hämta en specifik bok baserat på BokID
-router.get('/:id', async (req, res) => {
-  const { id } = req.params; // Hämtar bokID från URL-parametern
+};
+
+// Hämta en specifik bok
+export const getBookById = async (req, res) => {
+  const { id } = req.params;
 
   try {
     const [rows] = await db.query('SELECT * FROM böcker WHERE BokID = ?', [id]);
@@ -23,28 +21,25 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Bok ej hittad' });
     }
 
-    res.json(rows[0]); // Skicka tillbaka den specifika boken (första raden)
+    res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
 
-// 🔹 POST /bocker – Lägg till ny bok
-router.post('/', async (req, res) => {
+// Lägg till en ny bok
+export const addBook = async (req, res) => {
   const { Titel, Författare, Pris, LagerAntal } = req.body;
 
-  // ✅ Kontrollera att alla fält är ifyllda
   if (!Titel || !Författare || !Pris || LagerAntal == null) {
     return res.status(400).json({ error: 'Alla fält måste fyllas i.' });
   }
 
-  // ❌ Kontrollera att Pris och LagerAntal inte är negativa
   if (Pris <= 0 || LagerAntal <= 0) {
     return res.status(400).json({ error: 'Pris och LagerAntal måste vara större än 0.' });
   }
 
   try {
-    // 🔍 Kontrollera om boken redan finns
     const [existingBooks] = await db.query(
       'SELECT * FROM böcker WHERE Titel = ? AND Författare = ?',
       [Titel, Författare]
@@ -54,7 +49,6 @@ router.post('/', async (req, res) => {
       return res.status(409).json({ error: 'Boken finns redan i systemet.' });
     }
 
-    // ✅ Lägg till boken
     const [result] = await db.query(
       'INSERT INTO böcker (Titel, Författare, Pris, LagerAntal) VALUES (?, ?, ?, ?)',
       [Titel, Författare, Pris, LagerAntal]
@@ -64,18 +58,17 @@ router.post('/', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
 
-// 🔄 PUT /bocker/:id – Uppdatera en bok
-router.put('/:id', async (req, res) => {
+// Uppdatera en bok
+export const updateBook = async (req, res) => {
   const { id } = req.params;
   const { Titel, Författare, Pris, LagerAntal } = req.body;
 
   if (!Titel || !Författare || !Pris || LagerAntal == null) {
-    return res.status(400).json({ error: 'Alla fält (Titel, Författare, Pris, LagerAntal) måste anges.' });
+    return res.status(400).json({ error: 'Alla fält måste fyllas i.' });
   }
 
-  // ❌ Kontrollera att Pris och LagerAntal inte är negativa
   if (Pris <= 0 || LagerAntal <= 0) {
     return res.status(400).json({ error: 'Pris och LagerAntal måste vara större än 0.' });
   }
@@ -94,20 +87,20 @@ router.put('/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
 
-// DELETE /bocker/:id – Ta bort en bok och relaterade poster i beställning_böcker
-router.delete('/:id', async (req, res) => {
+// Ta bort en bok och relaterade poster i beställning_böcker
+export const deleteBook = async (req, res) => {
   const { id } = req.params;
 
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
 
-    // 1. Ta bort alla rader i beställning_böcker som refererar till boken
+    // Ta bort alla rader i beställning_böcker som refererar till boken
     await conn.query('DELETE FROM beställning_böcker WHERE BokID = ?', [id]);
 
-    // 2. Ta bort boken
+    // Ta bort boken
     const [result] = await conn.query('DELETE FROM böcker WHERE BokID = ?', [id]);
 
     if (result.affectedRows === 0) {
@@ -123,9 +116,4 @@ router.delete('/:id', async (req, res) => {
   } finally {
     conn.release();
   }
-});
-
-
-
-
-export default router;
+};

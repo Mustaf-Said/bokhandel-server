@@ -1,20 +1,19 @@
-import express from 'express';
-import db from '../db.js';
-
-const router = express.Router();
+// controllers/kunderController.js
+import db from '../config/db.js';
 
 // Hämta alla kunder
-router.get('/', async (req, res) => {
+export const getAllCustomers = async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM kunder');
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
-// 🔹 GET: Hämta en specifik kund baserat på KundID
-router.get('/:id', async (req, res) => {
-  const { id } = req.params; // Hämtar KundID från URL-parametern
+};
+
+// Hämta en specifik kund baserat på KundID
+export const getCustomerById = async (req, res) => {
+  const { id } = req.params;
 
   try {
     const [rows] = await db.query('SELECT * FROM kunder WHERE KundID = ?', [id]);
@@ -27,32 +26,28 @@ router.get('/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
 
 // Lägg till ny kund
-router.post('/', async (req, res) => {
+export const addCustomer = async (req, res) => {
   const { Namn, Email, Mobile } = req.body;
 
-  // Kontrollera att e-postadressen följer formatet username@bokhandel.com
   const emailRegex = /^[a-zA-Z0-9._%+-]+@bokhandel\.com$/;
   if (!Email || !emailRegex.test(Email)) {
     return res.status(400).json({ error: 'Ogiltig emailadress. Måste vara i formatet: username@bokhandel.com' });
   }
 
-  // Kontrollera att mobilnummer är exakt 10 siffror
   const mobileRegex = /^\d{10}$/;
   if (!Mobile || !mobileRegex.test(Mobile)) {
     return res.status(400).json({ error: 'Ogiltigt mobilnummer. Måste vara exakt 10 siffror.' });
   }
 
-  // Kontrollera att Namn inte redan finns i databasen
   try {
     const [existingUser] = await db.query('SELECT * FROM kunder WHERE Namn = ?', [Namn]);
     if (existingUser.length > 0) {
       return res.status(400).json({ error: 'Användarnamnet är redan registrerat.' });
     }
 
-    // Om alla valideringar går igenom, lägg till kunden
     const [result] = await db.query(
       'INSERT INTO kunder (Namn, Email, Mobile) VALUES (?, ?, ?)',
       [Namn, Email, Mobile]
@@ -61,15 +56,13 @@ router.post('/', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
 
-
-// 🔄 PUT: Uppdatera kund
-router.put('/:id', async (req, res) => {
+// Uppdatera kund
+export const updateCustomer = async (req, res) => {
   const { id } = req.params;
   const { Namn, Email, Mobile } = req.body;
 
-  // Kontrollera att alla nödvändiga fält är med
   if (!Namn || !Email || !Mobile) {
     return res.status(400).json({ error: 'Alla fält (Namn, Email, Mobile) måste anges.' });
   }
@@ -88,16 +81,17 @@ router.put('/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
-// DELETE: Ta bort kund och alla relaterade beställningar
-router.delete('/:id', async (req, res) => {
+};
+
+// Ta bort kund och relaterade beställningar
+export const deleteCustomer = async (req, res) => {
   const { id } = req.params;
 
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
 
-    // Ta bort alla relaterade beställningar först
+    // Ta bort relaterade beställningar först
     await conn.query('DELETE FROM beställning_böcker WHERE BeställningID IN (SELECT BeställningID FROM beställningar WHERE KundID = ?)', [id]);
     await conn.query('DELETE FROM beställningar WHERE KundID = ?', [id]);
 
@@ -105,6 +99,7 @@ router.delete('/:id', async (req, res) => {
     const [result] = await conn.query('DELETE FROM kunder WHERE KundID = ?', [id]);
 
     if (result.affectedRows === 0) {
+      await conn.rollback();
       return res.status(404).json({ error: 'Ingen kund hittades med det angivna ID:t.' });
     }
 
@@ -116,7 +111,4 @@ router.delete('/:id', async (req, res) => {
   } finally {
     conn.release();
   }
-});
-
-
-export default router;
+};

@@ -1,4 +1,5 @@
-const api = 'http://localhost:3000';
+const api = '';
+//http://localhost:3000
 
 // 🧍 Lägg till kund
 document.getElementById('kundForm').addEventListener('submit', async (e) => {
@@ -120,13 +121,64 @@ async function visaBestallningar() {
 
 // 📋 Rendera beställningar (filtrerad lista)
 function renderaBestallningar(lista) {
-  const ul = document.getElementById('bestallningarLista');
-  ul.innerHTML = lista.map(b => {
+  const container = document.getElementById('bestallningarLista');
+
+  if (lista.length === 0) {
+    container.innerHTML = '<p>Inga beställningar att visa.</p>';
+    return;
+  }
+
+  container.innerHTML = `
+    <table class="bestallningarTable">
+      <thead>
+        <tr>
+          <th>Kund</th>
+          <th>Boktitel</th>
+          <th>Antal</th>
+          <th>Datum</th>
+          <th>Åtgärd</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${lista.map(b => {
     const datum = new Date(b.Datum);
-    datum.setDate(datum.getDate());
     const datumStr = datum.toLocaleDateString();
-    return `<li><strong>${b.Namn}</strong> beställde "${b.Titel}" (${b.Antal} st) <br><strong>Datum</strong> ${datumStr}</li>`;
-  }).join('');
+    return `
+            <tr>
+              <td>${b.Namn}</td>
+              <td>${b.Titel}</td>
+              <td>${b.Antal}</td>
+              <td>${datumStr}</td>
+              <td><button class="deleteBtn" data-id="${b.BeställningID}">Ta bort</button></td>
+            </tr>`;
+  }).join('')}
+      </tbody>
+    </table>
+  `;
+
+  // Eventlisteners på delete-knappar
+  document.querySelectorAll('.deleteBtn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.target.dataset.id;
+      if (confirm('Vill du verkligen ta bort denna beställning?')) {
+        try {
+          const res = await fetch(api + '/bestallningar/' + id, {
+            method: 'DELETE'
+          });
+          if (res.ok) {
+            alert('Beställning borttagen');
+            visaBestallningar(); // Uppdatera listan
+          } else {
+            const error = await res.json();
+            alert('Fel vid borttagning: ' + error.error);
+          }
+        } catch (err) {
+          alert('Något gick fel vid borttagning');
+          console.error(err);
+        }
+      }
+    });
+  });
 }
 
 // 🔍 Lägg till sökfunktion

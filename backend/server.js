@@ -23,7 +23,7 @@ app.use('/bocker', bockerRoutes);
 app.use('/rapport', rapportRoutes);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../frontEnd/public')));
 
 app.listen(port, () => {
   console.log(`Servern körs på http://localhost:${port}`);
