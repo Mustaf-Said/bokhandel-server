@@ -5,7 +5,7 @@ import db from '../config/db.js';
 export const getAllOrders = async (req, res) => {
   try {
     const [rows] = await db.query(`
-       SELECT  k.KundID, k.Namn, b.Titel, bb.Antal, be.BeställningID, be.Datum
+      SELECT  k.KundID, k.Namn, b.Titel, bb.Antal, be.BeställningID, be.Datum
       FROM kunder k
       JOIN beställningar be ON k.KundID = be.KundID
       JOIN beställning_böcker bb ON be.BeställningID = bb.BeställningID

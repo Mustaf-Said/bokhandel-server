@@ -1,7 +1,7 @@
 const api = '';
 //http://localhost:3000
 
-// 🧍 Lägg till kund
+// Lägg till kund
 document.getElementById('kundForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = new FormData(e.target);
@@ -30,7 +30,7 @@ document.getElementById('kundForm').addEventListener('submit', async (e) => {
 });
 
 
-// 📚 Lägg till bok
+// Lägg till bok
 document.getElementById('bokForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = new FormData(e.target);
@@ -60,7 +60,7 @@ document.getElementById('bokForm').addEventListener('submit', async (e) => {
 });
 
 
-// 🛒 Skapa beställning
+// Skapa beställning
 document.getElementById('orderForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const KundID = document.getElementById('kundSelect').value;
@@ -84,7 +84,7 @@ document.getElementById('orderForm').addEventListener('submit', async (e) => {
   hämtaBocker(); // uppdatera lager
 });
 
-// 📥 Hämta kunder till dropdown
+// Hämta kunder till dropdown
 async function hämtaKunder() {
   const res = await fetch(api + '/kunder');
   const kunder = await res.json();
@@ -92,7 +92,7 @@ async function hämtaKunder() {
   select.innerHTML = kunder.map(k => `<option value="${k.KundID}">${k.Namn}</option>`).join('');
 }
 
-// 📦 Hämta böcker till checkboxlista
+// Hämta böcker till checkboxlista
 async function hämtaBocker() {
   const res = await fetch(api + '/bocker');
   const bocker = await res.json();
@@ -107,7 +107,7 @@ async function hämtaBocker() {
 
 let allaBestallningar = []; // Global variabel för alla beställningar
 
-// 🧾 Hämta och visa beställningar (sorterade A–Ö)
+// Hämta och visa beställningar (sorterade A–Ö)
 async function visaBestallningar() {
   const res = await fetch(api + '/bestallningar');
   const data = await res.json();
@@ -119,7 +119,7 @@ async function visaBestallningar() {
   renderaBestallningar(allaBestallningar);
 }
 
-// 📋 Rendera beställningar (filtrerad lista)
+// Rendera beställningar (filtrerad lista)
 function renderaBestallningar(lista) {
   const container = document.getElementById('bestallningarLista');
 
@@ -181,7 +181,7 @@ function renderaBestallningar(lista) {
   });
 }
 
-// 🔍 Lägg till sökfunktion
+// Lägg till sökfunktion
 document.getElementById('sokBestallningar').addEventListener('input', (e) => {
 
   const sokterm = e.target.value.toLowerCase();
@@ -212,7 +212,7 @@ document.getElementById('sokBestallningar').addEventListener('input', (e) => {
 
 
 
-// 🔃 Init
+
 hämtaKunder();
 hämtaBocker();
 visaBestallningar();
