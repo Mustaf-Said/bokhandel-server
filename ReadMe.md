@@ -17,21 +17,21 @@ En fullstackapplikation för att hantera en bokhandel, med stöd för CRUD-opera
 BOKHANDEL-SERVER/
 ├── backend/
 │   ├── config/
-│   │   └── db.js                # Databasanslutning
-│   ├── controllers/             # Logik för varje resurs
+│   │   └── db.js # Databasanslutning
+│   ├── controllers/ # Logik för varje resurs
 │   │   ├── bestallningarController.js
 │   │   ├── bockerController.js
 │   │   ├── kunderController.js
 │   │   └── rapportController.js
-│   ├── routes/                  # API-endpoints per resurs
+│   ├── routes/ # API-endpoints per resurs
 │   │   ├── bestallningar.js
 │   │   ├── bocker.js
 │   │   ├── kunder.js
 │   │   └── rapport.js
-│   ├── server.js                # Startar Express-servern
+│   ├── server.js # Startar Express-servern
 │   ├── package-lock.json
 │   ├── package.json
-│   └── .env                     # Miljövariabler (ska ej pushas)
+│   └── .env # Miljövariabler (ska ej pushas)
 │
 ├── frontEnd/
 │   └── public/
@@ -39,11 +39,11 @@ BOKHANDEL-SERVER/
 │       ├── script.js
 │       └── style.css
 │
-├── database/                    # MySQL-databasfiler (kan vara SQL dump eller konfigurationsfiler)
+├── database/ # MySQL-databasfiler (kan vara SQL dump eller konfigurationsfiler)
 │
 ├── .gitignore
 ├── README.md
-└── node_modules/                # Node.js moduler (skapas vid installation)
+└── node_modules/  # Node.js moduler (skapas vid installation)
 
 
 ## 1. Klona projektet
