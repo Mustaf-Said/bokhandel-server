@@ -11,9 +11,9 @@ En fullstackapplikation för att hantera en bokhandel, med stöd för CRUD-opera
 - **Miljövariabler:** dotenv
 
 ---
-```
-## 📁 Mappstruktur
 
+## 📁 Mappstruktur
+```markdown
 BOKHANDEL-SERVER/
 ├── backend/
 │   ├── config/
@@ -49,7 +49,7 @@ BOKHANDEL-SERVER/
 
 ## 1. Klona projektet
 
-```bash
+
 git clone https://github.com/Mustaf-Said/bokhandel-server.git
 cd bokhandel-server/backend
 
@@ -61,7 +61,7 @@ npm install
 
 npm start
 
-## 📥 Ladda ner bokhandelsdata
+## 4. 📥 Ladda ner bokhandelsdata
 
 Om du vill använda bokhandelsdata i ditt projekt kan du ladda ner den färdiga exempeldatafilen bokhandelsdata från GitHub.
 När du har hämtat filen kan du öppna den och anpassa den efter dina egna behov om så önskas.
