@@ -11,7 +11,7 @@ En fullstackapplikation för att hantera en bokhandel, med stöd för CRUD-opera
 - **Miljövariabler:** dotenv
 
 ---
-
+```
 ## 📁 Mappstruktur
 
 BOKHANDEL-SERVER/
@@ -45,6 +45,7 @@ BOKHANDEL-SERVER/
 ├── README.md
 └── node_modules/  # Node.js moduler (skapas vid installation)
 
+```
 
 ## 1. Klona projektet
 
