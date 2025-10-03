@@ -1,6 +1,6 @@
 
 # 📚 Bokhandel-App
-
+```markdown
 En fullstackapplikation för att hantera en bokhandel, med stöd för CRUD-operationer på böcker, kunder, beställningar och rapporter. Backend är byggd med Express och MySQL2. Frontend är en enkel HTML/CSS/JS-baserad klient.
 
 ## 🛠️ Teknikstack
