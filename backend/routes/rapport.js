@@ -1,10 +1,8 @@
-// routes/rapport.js
 import express from 'express';
-import { getTotalCostPerCustomer } from '../controllers/rapportController.js';
+import { getDetailedOrdersReport } from '../controllers/rapportController.js';
 
 const router = express.Router();
 
-// Definiera vägen för att hämta total kostnad per kund
-router.get('/total-kostnad', getTotalCostPerCustomer);
+router.get('/rapport', getDetailedOrdersReport);
 
 export default router;

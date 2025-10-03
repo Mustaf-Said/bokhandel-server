@@ -10,7 +10,7 @@ import {
 
 const router = express.Router();
 
-// Definiera vägar och koppla till controllerfunktioner
+
 router.get('/', getAllCustomers); // Hämta alla kunder
 router.get('/:id', getCustomerById); // Hämta en specifik kund
 router.post('/', addCustomer); // Lägg till ny kund

@@ -20,11 +20,21 @@ import rapportRoutes from './routes/rapport.js';
 app.use('/kunder', kunderRoutes);
 app.use('/bestallningar', bestallningarRoutes);
 app.use('/bocker', bockerRoutes);
-app.use('/rapport', rapportRoutes);
+app.use('/bestallning', rapportRoutes);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 app.use(express.static(path.join(__dirname, '../frontEnd/public')));
 
 app.listen(port, () => {
   console.log(`Servern körs på http://localhost:${port}`);
+});
+
+
+// Graceful Shutdown
+process.on('SIGINT', () => {
+  console.log("Initiating graceful shutdown...");
+  app.close(() => {
+    console.log("Server shut down gracefully.");
+    process.exit(0); // Exit with success code
+  });
 });

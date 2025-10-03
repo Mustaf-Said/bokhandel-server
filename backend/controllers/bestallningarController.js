@@ -17,6 +17,45 @@ export const getAllOrders = async (req, res) => {
   }
 };
 
+// Hämta en specifik beställning med böcker
+export const getOrderById = async (req, res) => {
+  const bestallningID = req.params.id;
+
+  try {
+    const [rows] = await db.query(`
+      SELECT be.BeställningID, be.Datum, k.KundID, k.Namn, b.BokID, b.Titel, bb.Antal
+      FROM beställningar be
+      JOIN kunder k ON be.KundID = k.KundID
+      JOIN beställning_böcker bb ON be.BeställningID = bb.BeställningID
+      JOIN böcker b ON bb.BokID = b.BokID
+      WHERE be.BeställningID = ?
+    `, [bestallningID]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Beställning hittades inte' });
+    }
+    const datum = new Date(rows[0].Datum);
+    const datumStr = datum.toLocaleDateString('sv-SE'); // exempel: '2025-10-02'
+
+    // Strukturera svaret om du vill (gruppera böcker under beställning)
+    const order = {
+      BeställningID: rows[0].BeställningID,
+      Datum: datumStr,
+      KundID: rows[0].KundID,
+      Namn: rows[0].Namn,
+      Bocker: rows.map(row => ({
+        BokID: row.BokID,
+        Titel: row.Titel,
+        Antal: row.Antal
+      }))
+    };
+
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // Skapa ny beställning med böcker och minska lagersaldo
 export const createOrder = async (req, res) => {
   const { KundID, Datum, Bocker } = req.body;
@@ -111,6 +150,74 @@ export const deleteOrder = async (req, res) => {
 
     await conn.commit();
     res.json({ message: 'Beställning borttagen och lagersaldo återställt' });
+
+  } catch (err) {
+    await conn.rollback();
+    res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
+  }
+};
+
+// Uppdatera en befintlig beställning (byt ut böcker & antal)
+export const updateOrder = async (req, res) => {
+  const bestallningID = req.params.id;
+  const { Bocker } = req.body;
+
+  const conn = await db.getConnection();
+
+  try {
+    await conn.beginTransaction();
+
+    // 🧹 1. Återställ lagersaldo för gamla böcker
+    const [oldBocker] = await conn.query(
+      'SELECT BokID, Antal FROM beställning_böcker WHERE BeställningID = ?',
+      [bestallningID]
+    );
+
+    for (const bok of oldBocker) {
+      await conn.query(
+        'UPDATE böcker SET LagerAntal = LagerAntal + ? WHERE BokID = ?',
+        [bok.Antal, bok.BokID]
+      );
+    }
+
+    // 🗑️ 2. Ta bort gamla bokrader
+    await conn.query(
+      'DELETE FROM beställning_böcker WHERE BeställningID = ?',
+      [bestallningID]
+    );
+
+    // ➕ 3. Lägg till nya böcker och minska lager
+    for (const bok of Bocker) {
+      const { BokID, Antal } = bok;
+
+      const [[bokInfo]] = await conn.query(
+        'SELECT LagerAntal FROM böcker WHERE BokID = ?',
+        [BokID]
+      );
+
+      if (!bokInfo) {
+        throw new Error(`Bok med ID ${BokID} finns inte.`);
+      }
+
+      if (bokInfo.LagerAntal < Antal) {
+        throw new Error(`Inte tillräckligt i lager för bok med ID ${BokID}.`);
+      }
+
+      await conn.query(
+        'INSERT INTO beställning_böcker (BeställningID, BokID, Antal) VALUES (?, ?, ?)',
+        [bestallningID, BokID, Antal]
+      );
+
+      await conn.query(
+        'UPDATE böcker SET LagerAntal = LagerAntal - ? WHERE BokID = ?',
+        [Antal, BokID]
+      );
+    }
+
+    await conn.commit();
+    res.json({ message: 'Beställning uppdaterad' });
 
   } catch (err) {
     await conn.rollback();

@@ -10,7 +10,7 @@ import {
 
 const router = express.Router();
 
-// Definiera vägarna och koppla till controllerfunktioner
+
 router.get('/', getBooks); // Hämta alla böcker
 router.get('/:id', getBookById); // Hämta en specifik bok
 router.post('/', addBook); // Lägg till en ny bok
