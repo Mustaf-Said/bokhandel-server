@@ -13,7 +13,7 @@ En fullstackapplikation för att hantera en bokhandel, med stöd för CRUD-opera
 ---
 
 ## 📁 Mappstruktur
-```markdown
+
 BOKHANDEL-SERVER/
 ├── backend/
 │   ├── config/
